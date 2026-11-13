@@ -31,6 +31,11 @@ export default async function Home() {
               LM
             </div>
           )}
+          {profile.short_bio?.trim() && (
+            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted">
+              {profile.short_bio.trim()}
+            </p>
+          )}
         </div>
         <div>
           <h1 className="font-serif text-4xl tracking-tight sm:text-5xl">{profile.name}</h1>

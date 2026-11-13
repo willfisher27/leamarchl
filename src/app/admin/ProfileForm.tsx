@@ -51,6 +51,10 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
         <input id="photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" className="text-sm" />
       </div>
       <div>
+        <label className="label" htmlFor="short_bio">Text below photo (optional; short bio, beat, or location)</label>
+        <textarea id="short_bio" name="short_bio" rows={3} defaultValue={profile.short_bio ?? ""} className="field" />
+      </div>
+      <div>
         <label className="label" htmlFor="bio">Bio (leave a blank line between paragraphs)</label>
         <textarea id="bio" name="bio" rows={7} defaultValue={profile.bio} className="field font-serif text-base" />
       </div>

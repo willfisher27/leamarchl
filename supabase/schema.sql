@@ -39,6 +39,9 @@ create table if not exists public.profile (
 
 insert into public.profile (id) values (1) on conflict (id) do nothing;
 
+-- Added later: short text shown below the profile photo.
+alter table public.profile add column if not exists short_bio text not null default '';
+
 -- ─── Articles ─────────────────────────────────────────────────────────
 create table if not exists public.articles (
   id uuid primary key default gen_random_uuid(),

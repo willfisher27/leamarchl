@@ -12,7 +12,10 @@ async function signInWithPassword(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) redirect("/login?error=password");
+  if (error) {
+    console.error(`[login] password sign-in failed: ${error.message}`);
+    redirect("/login?error=password");
+  }
   redirect("/admin");
 }
 
@@ -23,10 +26,12 @@ async function sendLink(formData: FormData) {
     const origin = process.env.NEXT_PUBLIC_SITE_URL || (await headers()).get("origin") || "";
     const supabase = await createClient();
     // shouldCreateUser: false — only accounts you created in Supabase can log in.
-    await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: false, emailRedirectTo: `${origin}/auth/callback?next=/admin` },
     });
+    // Logged on the server only (Terminal locally, Vercel → Logs in production), never shown to visitors.
+    if (error) console.error(`[login] sign-in link not sent: ${error.message}`);
   }
   // Same message either way, so the form doesn't reveal which emails are editors.
   redirect("/login?sent=1");

@@ -39,6 +39,7 @@ export async function updateProfile(fd: FormData): Promise<Result> {
         title: str(fd, "title"),
         bio: str(fd, "bio"),
         experience: str(fd, "experience"),
+        short_bio: str(fd, "short_bio"),
         email: optional(fd, "email"),
         ...links,
         photo_path,

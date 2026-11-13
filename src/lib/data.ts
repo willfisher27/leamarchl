@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { SUPABASE_URL } from "@/lib/supabase/url";
 
 export type Profile = {
   id: number;
@@ -8,6 +9,7 @@ export type Profile = {
   title: string;
   bio: string;
   experience: string;
+  short_bio: string;
   photo_path: string | null;
   email: string | null;
   linkedin_url: string | null;
@@ -34,6 +36,7 @@ export const FALLBACK_PROFILE: Profile = {
   title: "Reporter, Freedom of the Press Foundation",
   bio: "",
   experience: "",
+  short_bio: "",
   photo_path: null,
   email: null,
   linkedin_url: null,
@@ -64,7 +67,7 @@ export async function getArticles(includePrivate: boolean): Promise<Article[]> {
 }
 
 export function publicFileUrl(path: string) {
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/site-public/${path}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/site-public/${path}`;
 }
 
 export function articleHref(a: Article) {

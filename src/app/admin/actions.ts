@@ -85,6 +85,32 @@ export async function setPassword(fd: FormData): Promise<Result> {
 
 // ─── Articles ─────────────────────────────────────────────────────────
 
+type Supabase = Awaited<ReturnType<typeof requireEditor>>;
+
+/**
+ * Tidy a section name and reuse an existing section's spelling when it matches
+ * ignoring case, so "iran" and "Iran " don't become two sections.
+ */
+async function canonicalSection(supabase: Supabase, raw: string, exclude?: string) {
+  const name = raw.replace(/\s+/g, " ").trim().slice(0, 60);
+  if (!name) return null;
+  const { data } = await supabase.from("articles").select("section").not("section", "is", null);
+  const match = (data ?? [])
+    .map((r) => r.section as string)
+    .find((s) => s !== exclude && s.toLowerCase() === name.toLowerCase());
+  return match ?? name;
+}
+
+export async function renameSection(from: string, to: string): Promise<Result> {
+  return run(async () => {
+    const supabase = await requireEditor();
+    const name = await canonicalSection(supabase, to, from);
+    if (!name) return { error: "Section name can’t be empty." };
+    const { error } = await supabase.from("articles").update({ section: name }).eq("section", from);
+    if (error) return { error: error.message };
+  });
+}
+
 export async function saveArticle(id: string | null, fd: FormData): Promise<Result> {
   return run(async () => {
     const supabase = await requireEditor();
@@ -99,6 +125,7 @@ export async function saveArticle(id: string | null, fd: FormData): Promise<Resu
 
     const row = {
       title,
+      section: await canonicalSection(supabase, str(fd, "section")),
       outlet: optional(fd, "outlet"),
       published_on: optional(fd, "published_on"),
       summary: optional(fd, "summary"),

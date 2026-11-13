@@ -31,6 +31,7 @@ export type Article = {
   kind: "link" | "pdf";
   url: string | null;
   file_path: string | null;
+  section: string | null;
   created_at: string;
 };
 
@@ -70,6 +71,34 @@ export async function getArticles(): Promise<Article[]> {
     .order("published_on", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
   return (data as Article[] | null) ?? [];
+}
+
+/** Distinct section names, A→Z. */
+export function sectionNames(articles: Article[]) {
+  return [...new Set(articles.map((a) => a.section).filter((s): s is string => Boolean(s)))].sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" }),
+  );
+}
+
+export type SectionGroup = { name: string | null; slug: string; articles: Article[] };
+
+/**
+ * Articles grouped by section: named sections A→Z, then unsectioned ones ("Other") last.
+ * Within each section, articles keep their newest-first order.
+ */
+export function groupBySection(articles: Article[]): SectionGroup[] {
+  const groups: SectionGroup[] = sectionNames(articles).map((name) => ({
+    name,
+    slug: sectionSlug(name),
+    articles: articles.filter((a) => a.section === name),
+  }));
+  const rest = articles.filter((a) => !a.section);
+  if (rest.length) groups.push({ name: null, slug: "other", articles: rest });
+  return groups;
+}
+
+export function sectionSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "section";
 }
 
 export async function getPhotos(): Promise<Photo[]> {

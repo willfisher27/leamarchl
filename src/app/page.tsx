@@ -82,7 +82,7 @@ export default async function Home() {
             All work →
           </Link>
         </div>
-        <ArticleList articles={recent} />
+        <ArticleList articles={recent} showSection />
       </section>
     </div>
   );

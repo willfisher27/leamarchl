@@ -8,9 +8,12 @@ import { saveArticle } from "./actions";
 
 const MAX_PDF_MB = 25;
 
-export default function ArticleForm({ article }: { article?: Article }) {
+const NEW_SECTION = "__new__";
+
+export default function ArticleForm({ article, sections }: { article?: Article; sections: string[] }) {
   const router = useRouter();
   const [kind, setKind] = useState<"link" | "pdf">(article?.kind ?? "link");
+  const [sectionChoice, setSectionChoice] = useState(article?.section ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -36,6 +39,14 @@ export default function ArticleForm({ article }: { article?: Article }) {
       }
       fd.delete("file");
       fd.set("file_path", filePath ?? "");
+      if (sectionChoice === NEW_SECTION) {
+        const name = String(fd.get("new_section") ?? "").trim();
+        if (!name) return setError("Type a name for the new section, or pick an existing one.");
+        fd.set("section", name);
+      } else {
+        fd.set("section", sectionChoice);
+      }
+      fd.delete("new_section");
       const res = await saveArticle(article?.id ?? null, fd);
       if (res.error) return setError(res.error);
       router.push("/admin");
@@ -58,6 +69,29 @@ export default function ArticleForm({ article }: { article?: Article }) {
           <label className="label" htmlFor="published_on">Date published</label>
           <input id="published_on" name="published_on" type="date" defaultValue={article?.published_on ?? ""} className="field" />
         </div>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label className="label" htmlFor="section">Section</label>
+          <select
+            id="section"
+            value={sectionChoice}
+            onChange={(e) => setSectionChoice(e.target.value)}
+            className="field"
+          >
+            <option value="">No section</option>
+            {sections.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+            <option value={NEW_SECTION}>+ New section…</option>
+          </select>
+        </div>
+        {sectionChoice === NEW_SECTION && (
+          <div>
+            <label className="label" htmlFor="new_section">New section name</label>
+            <input id="new_section" name="new_section" autoFocus placeholder="e.g. Press freedom" className="field" />
+          </div>
+        )}
       </div>
       <div>
         <label className="label" htmlFor="summary">Short summary (optional)</label>

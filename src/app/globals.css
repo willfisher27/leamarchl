@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fbfaf7;
+  --foreground: #1c1b19;
+  --muted: #6b6760;
+  --rule: #e4e0d8;
+  --accent: #8a2c1d;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-newsreader);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.field {
+  @apply w-full rounded-md border border-rule bg-white px-3 py-2 text-sm outline-none focus:border-foreground;
+}
+
+.label {
+  @apply mb-1 block text-xs font-medium uppercase tracking-wider text-muted;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:opacity-85 disabled:opacity-50;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-md border border-rule px-4 py-2 text-sm font-medium transition hover:border-foreground disabled:opacity-50;
+}

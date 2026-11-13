@@ -8,9 +8,10 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: { default: "Lea Marchl — Reporter", template: "%s — Lea Marchl" },
-  description:
-    "Lea Marchl is a reporter at Freedom of the Press Foundation. Portfolio of published work.",
+  title: { default: "Lea Marchl", template: "%s — Lea Marchl" },
+  description: "Lea Marchl, reporter at Freedom of the Press Foundation.",
+  // The whole site is behind a login, so keep it out of search engines.
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

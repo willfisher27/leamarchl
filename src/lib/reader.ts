@@ -1,5 +1,3 @@
-import "server-only";
-
 export const READER_COOKIE = "lm_reader";
 export const READER_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 

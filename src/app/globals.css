@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
+/* Sage palette. Text colors are checked for comfortable contrast on the sage background. */
 :root {
-  --background: #fbfaf7;
-  --foreground: #1c1b19;
-  --muted: #6b6760;
-  --rule: #e4e0d8;
-  --accent: #8a2c1d;
+  --background: #d4ddc8; /* sage */
+  --surface: #eef2e7; /* cards, inputs */
+  --foreground: #1d231b; /* near-black with a green cast */
+  --muted: #4f5a4a; /* secondary text */
+  --rule: #b3c0a5; /* dividers, borders */
+  --accent: #7a2e1f; /* deep rust for links and highlights */
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-rule: var(--rule);
@@ -24,7 +27,7 @@ body {
 }
 
 .field {
-  @apply w-full rounded-md border border-rule bg-white px-3 py-2 text-sm outline-none focus:border-foreground;
+  @apply w-full rounded-md border border-rule bg-surface px-3 py-2 text-sm outline-none focus:border-foreground;
 }
 
 .label {
@@ -36,5 +39,5 @@ body {
 }
 
 .btn-ghost {
-  @apply inline-flex items-center justify-center rounded-md border border-rule px-4 py-2 text-sm font-medium transition hover:border-foreground disabled:opacity-50;
+  @apply inline-flex items-center justify-center rounded-md border border-rule bg-surface/60 px-4 py-2 text-sm font-medium transition hover:border-foreground disabled:opacity-50;
 }

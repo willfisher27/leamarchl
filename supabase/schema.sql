@@ -1,5 +1,6 @@
--- Lea Marchl portfolio — database schema.
--- Run this once in Supabase: Dashboard → SQL Editor → New query → paste → Run.
+-- Lea Marchl portfolio — base database schema (migration 001).
+-- For a fresh project: run this file, then every file in supabase/migrations/ in order.
+-- Run in Supabase: Dashboard → SQL Editor → New query → paste → Run.
 
 -- ─── Editors allowlist ────────────────────────────────────────────────
 create table if not exists public.editors (

@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
-import { getViewer } from "@/lib/access";
+import { requireViewer } from "@/lib/access";
 import { getArticles } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Work" };
 
-export default async function ArticlesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ outlet?: string }>;
-}) {
+export default async function ArticlesPage({ searchParams }: { searchParams: Promise<{ outlet?: string }> }) {
+  await requireViewer();
   const { outlet } = await searchParams;
-  const { isReader } = await getViewer();
-  const articles = await getArticles(isReader);
+  const articles = await getArticles();
   const outlets = [...new Set(articles.map((a) => a.outlet).filter(Boolean))] as string[];
   const shown = outlet ? articles.filter((a) => a.outlet === outlet) : articles;
 
@@ -25,9 +21,6 @@ export default async function ArticlesPage({
   return (
     <div>
       <h1 className="font-serif text-4xl tracking-tight">Work</h1>
-      {isReader && (
-        <p className="mt-2 text-sm text-muted">You are viewing private materials.</p>
-      )}
       {outlets.length > 1 && (
         <div className="mt-6 flex flex-wrap gap-2">
           <Link href="/articles" className={chip(!outlet)}>

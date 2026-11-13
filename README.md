@@ -4,20 +4,21 @@ Portfolio site for Lea Marchl. Built with Next.js, Supabase (database, login, fi
 
 ## Who can see what
 
-| Visitor | Can see | Can edit |
-|---|---|---|
-| Public | About page, public articles | — |
-| Reader (entered the shared password at `/access`) | Everything above **plus private articles and PDFs** | — |
-| Editor (Lea or Will, logged in at `/login`) | Everything | Profile, photo, articles |
+The whole site is private. Every page starts at a sign-in screen with two options:
 
-Private articles are invisible to anyone without the password. They aren't listed, and their PDF links return "Not found".
-All PDFs are stored in a private bucket. Visitors only ever get a 5-minute signed link, after the site checks their access.
+| Sign in as | How | Can do |
+|---|---|---|
+| **Viewer** | Shared password (`READER_PASSWORD` in Vercel) | Browse About, Work, Resume, Photography |
+| **Editor** (Lea or Will) | Email + password | Everything above, plus edit everything under Admin |
+
+Nothing can be read with the public Supabase key. Pages, PDFs, and images are fetched on the server only after the login is checked,
+and files are handed out as short-lived signed links.
 
 ## One-time setup
 
 ### 1. Supabase (free)
 1. Create a project at https://supabase.com.
-2. **SQL Editor → New query**: paste `supabase/schema.sql` and run it.
+2. **SQL Editor → New query**: run `supabase/schema.sql`, then each file in `supabase/migrations/` in order.
 3. Add the editors. In the SQL editor, run:
    ```sql
    insert into public.editors (email) values ('lea@…'), ('will@…');
@@ -41,6 +42,6 @@ npm run dev                  # http://localhost:3000
 3. Deploy. The daily cron in `vercel.json` pings the database so the free Supabase project never pauses.
 
 ## Everyday use
-- **Editing:** go to `/login`, enter your email and click the link you receive. That opens `/admin`, where you can add, edit or delete articles and edit the profile.
-- **Sharing private materials:** give people the reader password and point them to `/access`.
-  To revoke access for everyone, change `READER_PASSWORD` in Vercel and redeploy. This signs out all readers.
+- **Editing:** sign in as Editor. Admin has tabs for Articles, Photography, Resume, Profile, and Account (your password).
+- **First-time editor password:** use "Email me a sign-in link", or run `./scripts/set-password.sh` on a machine with `.env.local`.
+- **Viewers:** give people the viewer password. To revoke everyone's access, change `READER_PASSWORD` in Vercel and redeploy.

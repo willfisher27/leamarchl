@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
-import { getViewer } from "@/lib/access";
+import { requireEditorPage } from "@/lib/access";
 import type { Article } from "@/lib/data";
 import ArticleForm from "../../ArticleForm";
 
 export default async function EditArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { supabase } = await getViewer();
+  const { supabase } = await requireEditorPage();
   const { data } = await supabase.from("articles").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
 

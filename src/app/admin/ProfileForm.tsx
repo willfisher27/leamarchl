@@ -3,9 +3,10 @@
 import { useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/data";
+import { resizeImage } from "@/lib/image";
 import { updateProfile } from "./actions";
 
-const IMAGE_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export default function ProfileForm({ profile }: { profile: Profile }) {
   const [pending, start] = useTransition();
@@ -19,11 +20,15 @@ export default function ProfileForm({ profile }: { profile: Profile }) {
       let photoPath = profile.photo_path;
       const photo = fd.get("photo") as File | null;
       if (photo && photo.size > 0) {
-        const ext = IMAGE_TYPES[photo.type];
-        if (!ext) return setMessage({ ok: false, text: "Photo must be a JPG, PNG, or WebP." });
-        if (photo.size > 5 * 1024 * 1024) return setMessage({ ok: false, text: "Photo must be under 5 MB." });
-        const path = `profile/${crypto.randomUUID()}.${ext}`;
-        const { error } = await createClient().storage.from("site-public").upload(path, photo, { contentType: photo.type });
+        if (!IMAGE_TYPES.includes(photo.type)) return setMessage({ ok: false, text: "Photo must be a JPG, PNG, or WebP." });
+        let blob: Blob;
+        try {
+          ({ blob } = await resizeImage(photo, 1200));
+        } catch (err) {
+          return setMessage({ ok: false, text: (err as Error).message });
+        }
+        const path = `profile/${crypto.randomUUID()}.jpg`;
+        const { error } = await createClient().storage.from("site-public").upload(path, blob, { contentType: "image/jpeg" });
         if (error) return setMessage({ ok: false, text: `Photo upload failed: ${error.message}` });
         photoPath = path;
       }

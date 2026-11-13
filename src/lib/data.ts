@@ -1,7 +1,11 @@
 import "server-only";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { SUPABASE_URL } from "@/lib/supabase/url";
+
+/*
+ * The whole site is behind a login. Every page checks the visitor first
+ * (requireViewer / requireEditorPage in lib/access.ts), then reads data here
+ * with the secret key. The public key can't read anything.
+ */
 
 export type Profile = {
   id: number;
@@ -11,6 +15,7 @@ export type Profile = {
   experience: string;
   short_bio: string;
   photo_path: string | null;
+  resume_path: string | null;
   email: string | null;
   linkedin_url: string | null;
   x_url: string | null;
@@ -26,7 +31,15 @@ export type Article = {
   kind: "link" | "pdf";
   url: string | null;
   file_path: string | null;
-  visibility: "public" | "private";
+  created_at: string;
+};
+
+export type Photo = {
+  id: string;
+  file_path: string;
+  caption: string | null;
+  width: number | null;
+  height: number | null;
   created_at: string;
 };
 
@@ -38,6 +51,7 @@ export const FALLBACK_PROFILE: Profile = {
   experience: "",
   short_bio: "",
   photo_path: null,
+  resume_path: null,
   email: null,
   linkedin_url: null,
   x_url: null,
@@ -45,29 +59,30 @@ export const FALLBACK_PROFILE: Profile = {
 };
 
 export async function getProfile(): Promise<Profile> {
-  const supabase = await createClient();
-  const { data } = await supabase.from("profile").select("*").eq("id", 1).maybeSingle();
-  return (data as Profile | null) ?? FALLBACK_PROFILE;
+  const { data } = await createAdminClient().from("profile").select("*").eq("id", 1).maybeSingle();
+  return { ...FALLBACK_PROFILE, ...((data as Partial<Profile> | null) ?? {}) };
 }
 
-/**
- * Public visitors: queried as themselves, so row-level security only returns public rows.
- * Readers/editors: queried with the service role, after the caller has verified access.
- */
-export async function getArticles(includePrivate: boolean): Promise<Article[]> {
-  const client = includePrivate ? createAdminClient() : await createClient();
-  let query = client
+export async function getArticles(): Promise<Article[]> {
+  const { data } = await createAdminClient()
     .from("articles")
     .select("*")
     .order("published_on", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
-  if (!includePrivate) query = query.eq("visibility", "public");
-  const { data } = await query;
   return (data as Article[] | null) ?? [];
 }
 
-export function publicFileUrl(path: string) {
-  return `${SUPABASE_URL}/storage/v1/object/public/site-public/${path}`;
+export async function getPhotos(): Promise<Photo[]> {
+  const { data } = await createAdminClient()
+    .from("photos")
+    .select("*")
+    .order("created_at", { ascending: false });
+  return (data as Photo[] | null) ?? [];
+}
+
+/** Images live in a private bucket; /media checks the login, then redirects to a signed link. */
+export function mediaUrl(path: string) {
+  return `/media/${path}`;
 }
 
 export function articleHref(a: Article) {

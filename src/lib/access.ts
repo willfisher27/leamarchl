@@ -1,9 +1,10 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { READER_COOKIE, verifyReaderToken } from "@/lib/reader";
 
-/** Who is looking at the page: an editor, a reader with the password, or the public. */
+/** Who is looking at the page: an editor, a viewer with the shared password, or nobody yet. */
 export async function getViewer() {
   const supabase = await createClient();
   const {
@@ -16,14 +17,26 @@ export async function getViewer() {
     isEditor = data === true;
   }
 
-  const token = (await cookies()).get(READER_COOKIE)?.value;
-  const hasReaderPass = await verifyReaderToken(token);
+  const hasViewerPass = await verifyReaderToken((await cookies()).get(READER_COOKIE)?.value);
 
   return {
     supabase,
     user,
     isEditor,
-    /** Can see private materials. */
-    isReader: isEditor || hasReaderPass,
+    /** Signed in as a viewer or an editor, so can see the site. */
+    isSignedIn: isEditor || hasViewerPass,
   };
+}
+
+/** Use at the top of every page: sends anyone not signed in to the login screen. */
+export async function requireViewer() {
+  const viewer = await getViewer();
+  if (!viewer.isSignedIn) redirect("/login");
+  return viewer;
+}
+
+export async function requireEditorPage() {
+  const viewer = await getViewer();
+  if (!viewer.isEditor) redirect("/login?as=editor");
+  return viewer;
 }

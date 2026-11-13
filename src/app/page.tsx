@@ -1,11 +1,11 @@
 import Link from "next/link";
 import ArticleList from "@/components/ArticleList";
-import { getViewer } from "@/lib/access";
-import { getArticles, getProfile, publicFileUrl } from "@/lib/data";
+import { requireViewer } from "@/lib/access";
+import { getArticles, getProfile, mediaUrl } from "@/lib/data";
 
 export default async function Home() {
-  const { isReader } = await getViewer();
-  const [profile, articles] = await Promise.all([getProfile(), getArticles(isReader)]);
+  await requireViewer();
+  const [profile, articles] = await Promise.all([getProfile(), getArticles()]);
   const recent = articles.slice(0, 3);
   const experience = profile.experience.split("\n").map((l) => l.trim()).filter(Boolean);
   const links = [
@@ -22,7 +22,7 @@ export default async function Home() {
           {profile.photo_path ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={publicFileUrl(profile.photo_path)}
+              src={mediaUrl(profile.photo_path)}
               alt={`Portrait of ${profile.name}`}
               className="aspect-[4/5] w-40 rounded-sm object-cover sm:w-full"
             />
@@ -31,10 +31,8 @@ export default async function Home() {
               LM
             </div>
           )}
-          {profile.short_bio?.trim() && (
-            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted">
-              {profile.short_bio.trim()}
-            </p>
+          {profile.short_bio.trim() && (
+            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted">{profile.short_bio.trim()}</p>
           )}
         </div>
         <div>
@@ -68,9 +66,7 @@ export default async function Home() {
 
       {experience.length > 0 && (
         <section>
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted">
-            Experience
-          </h2>
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted">Experience</h2>
           <ul className="space-y-2 font-serif text-lg">
             {experience.map((e) => (
               <li key={e}>{e}</li>

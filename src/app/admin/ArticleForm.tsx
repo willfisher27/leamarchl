@@ -90,20 +90,6 @@ export default function ArticleForm({ article }: { article?: Article }) {
         </div>
       )}
 
-      <fieldset>
-        <legend className="label">Visibility</legend>
-        <div className="flex flex-col gap-2 text-sm sm:flex-row sm:gap-6">
-          <label className="flex items-center gap-2">
-            <input type="radio" name="visibility" value="public" defaultChecked={article?.visibility !== "private"} />
-            Public — anyone can see it
-          </label>
-          <label className="flex items-center gap-2">
-            <input type="radio" name="visibility" value="private" defaultChecked={article?.visibility === "private"} />
-            Private — only people with the password
-          </label>
-        </div>
-      </fieldset>
-
       {error && <p className="text-sm text-accent">{error}</p>}
       <div className="flex gap-3">
         <button className="btn" disabled={pending}>{pending ? "Saving…" : "Save article"}</button>

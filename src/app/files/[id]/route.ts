@@ -12,8 +12,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!isSignedIn) return notFound();
 
   const admin = createAdminClient();
-  const { data: article } = await admin.from("articles").select("kind, file_path").eq("id", id).maybeSingle();
-  if (!article || article.kind !== "pdf" || !article.file_path) return notFound();
+  const { data: article } = await admin.from("articles").select("file_path").eq("id", id).maybeSingle();
+  if (!article?.file_path) return notFound();
 
   const { data, error } = await admin.storage.from("documents").createSignedUrl(article.file_path, 300);
   if (error || !data) return notFound();

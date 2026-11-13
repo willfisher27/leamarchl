@@ -28,6 +28,7 @@ export type Article = {
   outlet: string | null;
   published_on: string | null;
   summary: string | null;
+  /** Legacy column: "link" when there's a URL, else "pdf". An article may have a URL, a PDF, or both. */
   kind: "link" | "pdf";
   url: string | null;
   file_path: string | null;
@@ -114,8 +115,13 @@ export function mediaUrl(path: string) {
   return `/media/${path}`;
 }
 
+export function pdfHref(a: Article) {
+  return a.file_path ? `/files/${a.id}` : null;
+}
+
+/** Main link for an article: the published URL if there is one, otherwise the PDF. */
 export function articleHref(a: Article) {
-  return a.kind === "pdf" ? `/files/${a.id}` : (a.url ?? "#");
+  return a.url ?? pdfHref(a) ?? "#";
 }
 
 export function formatDate(d: string | null) {

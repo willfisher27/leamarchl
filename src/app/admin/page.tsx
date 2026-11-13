@@ -40,7 +40,7 @@ export default async function AdminArticlesPage() {
                       <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted">
                         {a.outlet && <span>{a.outlet}</span>}
                         {a.published_on && <span>{formatDate(a.published_on)}</span>}
-                        <span>{a.kind === "pdf" ? "PDF" : "Link"}</span>
+                        <span>{[a.url && "Link", a.file_path && "PDF"].filter(Boolean).join(" + ")}</span>
                       </div>
                     </div>
                     <div className="flex gap-2">

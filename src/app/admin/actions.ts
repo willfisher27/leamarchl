@@ -114,14 +114,13 @@ export async function renameSection(from: string, to: string): Promise<Result> {
 export async function saveArticle(id: string | null, fd: FormData): Promise<Result> {
   return run(async () => {
     const supabase = await requireEditor();
-    const kind = str(fd, "kind") === "pdf" ? "pdf" : "link";
     const url = str(fd, "url");
     const file_path = optional(fd, "file_path");
     const title = str(fd, "title");
 
     if (!title) return { error: "Title is required." };
-    if (kind === "link" && !isHttpUrl(url)) return { error: "Please enter a full link starting with https://." };
-    if (kind === "pdf" && !file_path) return { error: "Please attach a PDF." };
+    if (url && !isHttpUrl(url)) return { error: "Please enter a full link starting with https://." };
+    if (!url && !file_path) return { error: "Add an article link, a PDF, or both." };
 
     const row = {
       title,
@@ -129,9 +128,10 @@ export async function saveArticle(id: string | null, fd: FormData): Promise<Resu
       outlet: optional(fd, "outlet"),
       published_on: optional(fd, "published_on"),
       summary: optional(fd, "summary"),
-      kind,
-      url: kind === "link" ? url : null,
-      file_path: kind === "pdf" ? file_path : null,
+      // Kept so the existing database rule (link needs url, pdf needs file) still passes.
+      kind: url ? "link" : "pdf",
+      url: url || null,
+      file_path,
     };
 
     if (id) {

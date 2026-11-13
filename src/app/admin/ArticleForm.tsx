@@ -12,7 +12,7 @@ const NEW_SECTION = "__new__";
 
 export default function ArticleForm({ article, sections }: { article?: Article; sections: string[] }) {
   const router = useRouter();
-  const [kind, setKind] = useState<"link" | "pdf">(article?.kind ?? "link");
+  const [removePdf, setRemovePdf] = useState(false);
   const [sectionChoice, setSectionChoice] = useState(article?.section ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -22,20 +22,20 @@ export default function ArticleForm({ article, sections }: { article?: Article; 
     const fd = new FormData(e.currentTarget);
     start(async () => {
       setError(null);
-      let filePath = article?.file_path ?? null;
-      if (kind === "pdf") {
-        const file = fd.get("file") as File | null;
-        if (file && file.size > 0) {
-          if (file.type !== "application/pdf") return setError("Please choose a PDF file.");
-          if (file.size > MAX_PDF_MB * 1024 * 1024) return setError(`PDFs must be under ${MAX_PDF_MB} MB.`);
-          const path = `${crypto.randomUUID()}.pdf`;
-          const { error } = await createClient()
-            .storage.from("documents")
-            .upload(path, file, { contentType: "application/pdf" });
-          if (error) return setError(`Upload failed: ${error.message}`);
-          filePath = path;
-        }
-        if (!filePath) return setError("Please attach a PDF.");
+      let filePath = removePdf ? null : (article?.file_path ?? null);
+      const file = fd.get("file") as File | null;
+      if (file && file.size > 0) {
+        if (file.type !== "application/pdf") return setError("Please choose a PDF file.");
+        if (file.size > MAX_PDF_MB * 1024 * 1024) return setError(`PDFs must be under ${MAX_PDF_MB} MB.`);
+        const path = `${crypto.randomUUID()}.pdf`;
+        const { error } = await createClient()
+          .storage.from("documents")
+          .upload(path, file, { contentType: "application/pdf" });
+        if (error) return setError(`Upload failed: ${error.message}`);
+        filePath = path;
+      }
+      if (!String(fd.get("url") ?? "").trim() && !filePath) {
+        return setError("Add an article link, a PDF, or both.");
       }
       fd.delete("file");
       fd.set("file_path", filePath ?? "");
@@ -98,31 +98,23 @@ export default function ArticleForm({ article, sections }: { article?: Article; 
         <textarea id="summary" name="summary" rows={3} defaultValue={article?.summary ?? ""} className="field" />
       </div>
 
-      <fieldset>
-        <legend className="label">Type</legend>
-        <div className="flex gap-6 text-sm">
-          {(["link", "pdf"] as const).map((k) => (
-            <label key={k} className="flex items-center gap-2">
-              <input type="radio" name="kind" value={k} checked={kind === k} onChange={() => setKind(k)} />
-              {k === "link" ? "Link to article" : "Upload PDF"}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-
-      {kind === "link" ? (
-        <div>
-          <label className="label" htmlFor="url">Article URL</label>
-          <input id="url" name="url" type="url" required defaultValue={article?.url ?? ""} placeholder="https://" className="field" />
-        </div>
-      ) : (
-        <div>
-          <label className="label" htmlFor="file">
-            PDF {article?.file_path && "(leave empty to keep the current file)"}
+      <p className="text-sm text-muted">Add a link to the published article, a PDF copy, or both.</p>
+      <div>
+        <label className="label" htmlFor="url">Article URL</label>
+        <input id="url" name="url" type="url" defaultValue={article?.url ?? ""} placeholder="https://" className="field" />
+      </div>
+      <div>
+        <label className="label" htmlFor="file">
+          PDF {article?.file_path && !removePdf && "(leave empty to keep the current file)"}
+        </label>
+        <input id="file" name="file" type="file" accept="application/pdf" className="text-sm" />
+        {article?.file_path && (
+          <label className="mt-2 flex items-center gap-2 text-sm text-muted">
+            <input type="checkbox" checked={removePdf} onChange={(e) => setRemovePdf(e.target.checked)} />
+            Remove the current PDF
           </label>
-          <input id="file" name="file" type="file" accept="application/pdf" className="text-sm" />
-        </div>
-      )}
+        )}
+      </div>
 
       {error && <p className="text-sm text-accent">{error}</p>}
       <div className="flex gap-3">
